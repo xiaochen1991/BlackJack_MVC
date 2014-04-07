@@ -43,6 +43,13 @@ public abstract class Player {
 	 * different types of players
 	 */
 	public abstract boolean isHitting();
+	
+	/**
+	 * Empty the cards in hand
+	 */
+	public void EmptyHand(){
+		hand.clear();
+	}
 
 	/**
 	 * get the sum of the cards in the player's hand

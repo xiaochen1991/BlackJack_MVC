@@ -49,69 +49,74 @@ public class GameRunner extends HttpServlet {
 				request.getParameter("Player_Name"));
 		Dealer dealer = new Dealer("Dealer");
 
-		// two cards are dealt at the beginning
-		me.Hit(theDeck.dealNextCard());
-		dealer.Hit(theDeck.dealNextCard());
-		me.Hit(theDeck.dealNextCard());
-		dealer.Hit(theDeck.dealNextCard());
+		while (me.getChip() > 0) {
 
-		// print intial hands
-		System.out.println("Cards are dealt\n");
-		me.printHand(true);
-		dealer.printHand(false);
-		System.out.println("\n");
+			// two cards are dealt at the beginning
+			me.Hit(theDeck.dealNextCard());
+			dealer.Hit(theDeck.dealNextCard());
+			me.Hit(theDeck.dealNextCard());
+			dealer.Hit(theDeck.dealNextCard());
 
-		// flags for when each player is finished hitting
-		boolean meDone = false;
-		boolean dealerDone = false;
+			// print intial hands
+			System.out.println("Cards are dealt\n");
+			me.printHand(true);
+			dealer.printHand(false);
+			System.out.println("\n");
 
-		while (!meDone || !dealerDone) {
+			// flags for when each player is finished hitting
+			boolean meDone = false;
+			boolean dealerDone = false;
 
-			// player's turn
-			while (!meDone) {
+			while (!meDone || !dealerDone) {
 
-				// if the player hits
-				if (me.isHitting()) {
+				// player's turn
+				while (!meDone) {
 
-					// add next card in the deck and store whether player is
-					// bursted
-					meDone = !me.Hit(theDeck.dealNextCard());
-					me.printHand(true);
-				} else {
-					meDone = true;
+					// if the player hits
+					if (me.isHitting()) {
+
+						// add next card in the deck and store whether player is
+						// bursted
+						meDone = !me.Hit(theDeck.dealNextCard());
+						me.printHand(true);
+					} else {
+						meDone = true;
+					}
 				}
+
+				// dealer's turn
+				while (!dealerDone) {
+					if (dealer.isHitting()) {
+						dealerDone = !dealer.Hit(theDeck.dealNextCard());
+						dealer.printHand(false);
+					} else {
+						dealerDone = true;
+					}
+				}
+
+				System.out.println();
 			}
 
-			// dealer's turn
-			while (!dealerDone) {
-				if (dealer.isHitting()) {
-					dealerDone = !dealer.Hit(theDeck.dealNextCard());
-					dealer.printHand(false);
-				} else {
-					dealerDone = true;
-				}
+			// print final hands
+			me.printHand(true);
+			dealer.printHand(true);
+
+			int mySum = me.getHandSum();
+			int dealerSum = dealer.getHandSum();
+
+			if ((mySum > dealerSum && mySum <= 21) || dealerSum > 21) {
+				System.out.println("Your win!");
+				me.WinChip(Integer.parseInt(request.getParameter("wager")));
+			} else {
+				System.out.println("Dealer wins!");
+				me.LoseChip(Integer.parseInt(request.getParameter("wager")));
 			}
 
-			System.out.println();
+			theDeck.shuffle();
+			me.EmptyHand();
+			dealer.EmptyHand();
+ 
 		}
-
-		// print final hands
-		me.printHand(true);
-		dealer.printHand(true);
-
-		int mySum = me.getHandSum();
-		int dealerSum = dealer.getHandSum();
-
-		if ((mySum > dealerSum && mySum <= 21) || dealerSum > 21) {
-			System.out.println("Your win!");
-			me.WinChip(Integer.parseInt(request.getParameter("wager")));
-		} else {
-			System.out.println("Dealer wins!");
-			me.LoseChip(Integer.parseInt(request.getParameter("wager")));
-		}
-		
-		theDeck.shuffle();
-
 	}
 
 }
