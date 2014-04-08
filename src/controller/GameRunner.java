@@ -26,97 +26,77 @@ public class GameRunner extends HttpServlet {
 	}
 
 	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	protected void doGet(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
-
-	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
-		Deck theDeck = new Deck(Integer.parseInt(request
-				.getParameter("DeckNumber")));
+		// two cards are dealt at the beginning
+		me.Hit(theDeck.dealNextCard());
+		dealer.Hit(theDeck.dealNextCard());
+		me.Hit(theDeck.dealNextCard());
+		dealer.Hit(theDeck.dealNextCard());
 
-		// init the player objects
-		ConcretPlayer me = new ConcretPlayer(
-				request.getParameter("Player_Name"));
-		Dealer dealer = new Dealer("Dealer");
+		// print intial hands
+		System.out.println("Cards are dealt\n");
+		me.printHand(true);
+		dealer.printHand(false);
+		System.out.println("\n");
 
-		while (me.getChip() > 0) {
+		// flags for when each player is finished hitting
+		boolean meDone = false;
+		boolean dealerDone = false;
 
-			// two cards are dealt at the beginning
-			me.Hit(theDeck.dealNextCard());
-			dealer.Hit(theDeck.dealNextCard());
-			me.Hit(theDeck.dealNextCard());
-			dealer.Hit(theDeck.dealNextCard());
+		while (!meDone || !dealerDone) {
 
-			// print intial hands
-			System.out.println("Cards are dealt\n");
-			me.printHand(true);
-			dealer.printHand(false);
-			System.out.println("\n");
+			// player's turn
+			while (!meDone) {
 
-			// flags for when each player is finished hitting
-			boolean meDone = false;
-			boolean dealerDone = false;
+				// if the player hits
+				if (me.isHitting()) {
 
-			while (!meDone || !dealerDone) {
-
-				// player's turn
-				while (!meDone) {
-
-					// if the player hits
-					if (me.isHitting()) {
-
-						// add next card in the deck and store whether player is
-						// bursted
-						meDone = !me.Hit(theDeck.dealNextCard());
-						me.printHand(true);
-					} else {
-						meDone = true;
-					}
+					// add next card in the deck and store whether player is
+					// bursted
+					meDone = !me.Hit(theDeck.dealNextCard());
+					me.printHand(true);
+				} else {
+					meDone = true;
 				}
-
-				// dealer's turn
-				while (!dealerDone) {
-					if (dealer.isHitting()) {
-						dealerDone = !dealer.Hit(theDeck.dealNextCard());
-						dealer.printHand(false);
-					} else {
-						dealerDone = true;
-					}
-				}
-
-				System.out.println();
 			}
 
-			// print final hands
-			me.printHand(true);
-			dealer.printHand(true);
-
-			int mySum = me.getHandSum();
-			int dealerSum = dealer.getHandSum();
-
-			if ((mySum > dealerSum && mySum <= 21) || dealerSum > 21) {
-				System.out.println("Your win!");
-				me.WinChip(Integer.parseInt(request.getParameter("wager")));
-			} else {
-				System.out.println("Dealer wins!");
-				me.LoseChip(Integer.parseInt(request.getParameter("wager")));
+			// dealer's turn
+			while (!dealerDone) {
+				if (dealer.isHitting()) {
+					dealerDone = !dealer.Hit(theDeck.dealNextCard());
+					dealer.printHand(false);
+				} else {
+					dealerDone = true;
+				}
 			}
 
-			theDeck.shuffle();
-			me.EmptyHand();
-			dealer.EmptyHand();
- 
+			System.out.println();
 		}
+
+		// print final hands
+		me.printHand(true);
+		dealer.printHand(true);
+
+		int mySum = me.getHandSum();
+		int dealerSum = dealer.getHandSum();
+
+		if ((mySum > dealerSum && mySum <= 21) || dealerSum > 21) {
+			System.out.println("Your win!");
+			me.WinChip(Integer.parseInt(request.getParameter("wager")));
+		} else {
+			System.out.println("Dealer wins!");
+			me.LoseChip(Integer.parseInt(request.getParameter("wager")));
+		}
+
+		theDeck.shuffle();
+		me.EmptyHand();
+		dealer.EmptyHand();
+
 	}
 
 }
